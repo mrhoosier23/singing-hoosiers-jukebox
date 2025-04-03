@@ -1,230 +1,98 @@
-
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Singing Hoosiers Jukebox</title>
   <style>
-    body {
-      font-family: sans-serif;
-      padding: 20px;
-      background: #f9f9f9;
-      color: #333;
-      max-width: 800px;
-      margin: auto;
+    /* --- CSS styles here --- */
+    body { font-family: sans-serif; margin: 0; background: #f9f9f9; }
+    h1 { text-align: center; margin: 1rem 0; }
+    #controls { padding: 0.5rem; }
+    #searchBox { width: 100%; padding: 0.5rem; margin-bottom: 0.5rem; font-size: 1rem; }
+    #yearFilter { width: 100%; padding: 0.5rem; font-size: 1rem; }
+    @media (min-width: 600px) {
+      /* On wider screens, place search and year filter side by side */
+      #controls { display: flex; gap: 0.5rem; }
+      #searchBox, #yearFilter { width: 50%; margin-bottom: 0; }
     }
-    h1 {
-      text-align: center;
-      color: #c00;
-      font-size: 1.8em;
-    }
-    .controls {
-      display: flex;
-      flex-direction: column;
-      gap: 10px;
-      margin-bottom: 20px;
-    }
-    input[type="text"], select {
-      font-size: 16px;
-      padding: 10px;
-      width: 100%;
-    }
-    .track {
-      margin-bottom: 20px;
-      background: #fff;
-      padding: 15px;
-      border-radius: 8px;
-      box-shadow: 0 2px 6px rgba(0,0,0,0.1);
-    }
-    .track-title {
-      font-weight: bold;
-      margin: 0 0 10px;
-      font-size: 1.1em;
-      cursor: pointer;
-    }
-    .player {
-      display: none;
-      margin-top: 10px;
-    }
-    iframe {
-      width: 100%;
-      height: 80px;
-      border: none;
-    }
-    @media (max-width: 480px) {
-      h1 { font-size: 1.4em; }
-      .track-title { font-size: 1em; }
-    }
+    #trackList { list-style: none; padding: 0; margin: 0; }
+    #trackList li { padding: 0.75rem; border-bottom: 1px solid #ddd; cursor: pointer; }
+    #trackList li.playing { background: #e0f7fa; /* highlight current track */ }
+    /* Make sure the audio player spans full width */
+    #audioPlayer { width: 100%; display: block; margin-top: 1rem; }
+    /* Add bottom padding if audio player is fixed at bottom (optional) */
+    body.with-player-fixed #trackList { padding-bottom: 3rem; }
   </style>
 </head>
 <body>
-  <h1>♫ Singing Hoosiers Archive ♫</h1>
-  <div class="controls">
-    <input type="text" id="searchInput" placeholder="🔍 Search song title..." oninput="filterTracks()" />
-    <select id="yearSelect" onchange="filterTracks()">
-      <option value="">-- All Years --</option>
+  <h1>Singing Hoosiers Jukebox</h1>
+  <div id="controls">
+    <input type="search" id="searchBox" placeholder="Search songs...">
+    <select id="yearFilter">
+      <option value="All">All Years</option>
+      <!-- Year options e.g.: -->
+      <option value="1967">1967</option>
+      <option value="1968">1968</option>
+      <!-- ... up to last year -->
     </select>
   </div>
 
-  <div id="trackList"></div>
+  <ul id="trackList">
+    <!-- Track items, e.g.: -->
+    <li data-year="1967" data-src="https://docs.google.com/uc?export=download&id=FILEID1">
+      1. Broadway Medley (1967)
+    </li>
+    <li data-year="1967" data-src="https://docs.google.com/uc?export=download&id=FILEID2">
+      2. These Foolish Things (1967)
+    </li>
+    <li data-year="1967" data-src="https://docs.google.com/uc?export=download&id=FILEID3">
+      3. Zipadeedooda (1967)
+    </li>
+    <!-- ... more 1967 tracks, then 1968 tracks, etc., preserving order ... -->
+  </ul>
+
+  <audio id="audioPlayer" controls preload="none">
+    Your browser does not support the audio element.
+  </audio>
 
   <script>
-    const tracks = [
-      { number: 1, year: 1967, title: "Broadway Medley: I Got Rythm | I Got Plenty O' Nuttin' | I Got the Sun in The Monring | A Wonderful Day Like Today | Another Opening, Another Show", link: "https://drive.google.com/file/d/1knbRwUFrBJeG_K9uMSv0iYu22mjilLrW/preview?usp=drive_link" },
-      { number: 1, year: 1979, title: 'Everyday', link: "https://drive.google.com/file/d/1qRLIMpHo6xn05wJrZG_s07YH-5r87OXh/preview?usp=drive_link" },
-      { number: 1, year: 1975, title: 'Put On a Happy Face/Smile Medley', link: "https://drive.google.com/file/d/1jiLCMlSHajIujovveey1E2LscNoxX6HZ/preview?usp=drive_link" },
-      { number: 1, year: 1974, title: 'I Can See Clearly Now/Higher and Higher', link: "https://drive.google.com/file/d/177nJaoh7k-jOU-Up4b1wj3NoAZGRF1_R/preview?usp=drive_link" },
-      { number: 1, year: 1973, title: 'I Got Love/Got to Get You Into My Life', link: "https://drive.google.com/file/d/1hXldrA2O1uoARF9V4Gg6ZyftOtzv_g6P/preview?usp=drive_link" },
-      { number: 1, year: 1972, title: 'The Tavern of Loving People', link: "https://drive.google.com/file/d/1bPI3YQHYi7wVyiv6S7EZ4s0sYY50tq17/preview?usp=drive_link" },
-      { number: 1, year: 1971, title: 'Applause ', link: "https://drive.google.com/file/d/12eEivY0BWaMY5iDxRR_7cYmmSx73zShD/preview?usp=drive_link" },
-      { number: 1, year: 1970, title: "Opening Medley: All I Need is the Girl, Everything's Coming Up Roses, It's Today", link: "https://drive.google.com/file/d/1QD_tvSbVIjUgUrW_YEuIgRGln_cfFPcs/preview?usp=drive_link" },
-      { number: 1, year: 1969, title: "Broadway Medley: I Got Rythm | I Got Plenty O' Nuttin' | I Got the Sun in The Monring | A Wonderful Day Like Today | Another Opening, Another Show", link: "https://drive.google.com/file/d/1HHlMTbgEavW2mQMS14cE7FxsFCucSzvl/preview?usp=drive_link" },
-      { number: 1, year: 1981, title: 'This Could Be The Start of Something Big', link: "https://drive.google.com/file/d/1iUiKYn5g4CBfBJm5WuWMMNMjeBOWEBia/preview?usp=drive_link" },
-      { number: 1, year: 1968, title: "Broadway Medley: I Got Rythm | I Got Plenty O' Nuttin' | I Got the Sun in The Monring | Facsinating Rythm | Walking Happy | A Wonderful Day Like Today | Another Opening, Another Show ", link: "https://drive.google.com/file/d/1_6awqPKHhp8GYoPDzbXZZQOq-JyzYCoM/preview?usp=drive_link" },
-      { number: 2, year: 1973, title: 'Light Sings', link: "https://drive.google.com/file/d/1cKzhT2IrpdEyp7KgHGJvF9yQqJOOn-yE/preview?usp=drive_link" },
-      { number: 2, year: 1972, title: "Disney Medley: When You Wish Upon a Star, Mickey Mouse, Who's Afraid of the Big Bad Wolf, Some Day My Prince Will Come, Whistle While You Work, Hi-Ho, I Got No Strings, Propaganda Donald Duck, Bippety Boppity Boo, Cinderella, A Dream is a Wish Your Heart Makes, I'm Late, Neverland, Whale of a Tale, Supercalifragilisticexpialidocious, Chim-Chiminey\n", link: "https://drive.google.com/file/d/1kqyvzGom--AmF0Y0kxBCQQCpKTijNQ3M/preview?usp=drive_link" },
-      { number: 2, year: 1979, title: 'You Needed Me', link: "https://drive.google.com/file/d/1iOhYJJbLdCHG8f_IIbCUklUNal8byu-i/preview?usp=drive_link" },
-      { number: 2, year: 1974, title: 'East of the Sun', link: "https://drive.google.com/file/d/1ptnkzGDWIRHwFuLM8URf3FzNKblsCv3K/preview?usp=drive_link" },
-      { number: 2, year: 1969, title: 'Five Foot Two, Eyes of Blue | Exactly Like You | For Me and My Gal', link: "https://drive.google.com/file/d/11n2VidQf8Wov3UQaA_vyRRrnK2-fe-Pp/preview?usp=drive_link" },
-      { number: 2, year: 1971, title: 'Love Story, Where Do I Begin ', link: "https://drive.google.com/file/d/1jlqHyb5wMl7kHxSMZ4kcNEcR1AU1Qf1a/preview?usp=drive_link" },
-      { number: 2, year: 1968, title: 'Step to the Rear', link: "https://drive.google.com/file/d/1CdvuEHSuBG-EPmp4GPjnUpEDcvVF7TNB/preview?usp=drive_link" },
-      { number: 2, year: 1967, title: 'These Foolish Things', link: "https://drive.google.com/file/d/1bxia5Hfdz4DbogE_BWPGIGnxEaAgmS-B/preview?usp=drive_link" },
-      { number: 2, year: 1970, title: 'This Guy’s in Love With You', link: "https://drive.google.com/file/d/1h-yfemGzmNP4aq3BIq2w4UsUj1IzphkZ/preview?usp=drive_link" },
-      { number: 2, year: 1975, title: "Soon It's Gonna Rain", link: "https://drive.google.com/file/d/1FxbeiiJqXiXAZEy2zCvaAPTmd82JGQu6/preview?usp=drive_link" },
-      { number: 3, year: 1972, title: 'Battle Hymn of the Republic (Organ Version)', link: "https://drive.google.com/file/d/1AUIu2IJQQpIl5l1mNokrKwgx_Y6gQlsv/preview?usp=drive_link" },
-      { number: 3, year: 1974, title: '?', link: "https://drive.google.com/file/d/1m42U1J5jFAPXnaUY0cOAP1mozcll3U6a/preview?usp=drive_link" },
-      { number: 3, year: 1967, title: 'Zipadeedooda', link: "https://drive.google.com/file/d/1FwhxL71iY1lMQ7Sv5xxp2ywyHIWTICeV/preview?usp=drive_link" },
-      { number: 3, year: 1975, title: 'Rhythm of Life', link: "https://drive.google.com/file/d/1x4I2scIoXUu2FxGUihYoB7qyhq3rFoVh/preview?usp=drive_link" },
-      { number: 3, year: 1968, title: 'The Way You Look Tonight', link: "https://drive.google.com/file/d/1-hHlfP2ssMrNdE-fgW8CYfXw5CLPu-s6/preview?usp=drive_link" },
-      { number: 3, year: 1973, title: 'Up, Up and Away', link: "https://drive.google.com/file/d/1ilc6997F0Bkq4XHH6aMDzNMxzOm1mJLV/preview?usp=drive_link" },
-      { number: 3, year: 1969, title: 'A Man and a Woman', link: "https://drive.google.com/file/d/1lMdqU37hJTTgeC5Gz0NgFcXk_nltjxz0/preview?usp=drive_link" },
-      { number: 3, year: 1971, title: 'Bewitched, Bothered, and Bewildered', link: "https://drive.google.com/file/d/1mU4LiYJyJkCqCDSzPh0ITxWzOGrL4iW1/preview?usp=drive_link" },
-      { number: 3, year: 1979, title: 'Copacabana', link: "https://drive.google.com/file/d/1qqShhSwmvSgNQXhDINpJ166b8FyqxZJ2/preview?usp=drive_link" },
-      { number: 3, year: 1970, title: 'Nothing Can Stop Me Now!', link: "https://drive.google.com/file/d/1dKCMgeeIJxr4In0NQj4G4QYizaQsaTRl/preview?usp=drive_link" },
-      { number: 4, year: 1967, title: 'Western Medley: I Am Bound for the Promised Land | Shenandoah | Gonna Raise a Ruckus Tonight | Fare You Well, My Darling | Come Share My Life', link: "https://drive.google.com/file/d/1DrioHaiZopRGztvYMXXFYUqSZXW5tgkI/preview?usp=drive_link" },
-      { number: 4, year: 1970, title: 'The Lamp Is Low', link: "https://drive.google.com/file/d/1-5Aeia3JscfPIBeMzUnQb1jEJd1I4yV-/preview?usp=drive_link" },
-      { number: 4, year: 1971, title: 'Cresent Moon', link: "https://drive.google.com/file/d/1yq09PPogiG1TQH9SpwzwYimxtBs5-8Zt/preview?usp=drive_link" },
-      { number: 4, year: 1973, title: 'Celebration', link: "https://drive.google.com/file/d/1-Q3DPK_2PyWnCAZWsduOUZ-DTPAmw-bp/preview?usp=drive_link" },
-      { number: 4, year: 1972, title: 'Flim Flam Man', link: "https://drive.google.com/file/d/1lkVbGv81kdz0TwnTPAC_j-2vbXPWtVCS/preview?usp=drive_link" },
-      { number: 4, year: 1969, title: "Goin' Out of My Head", link: "https://drive.google.com/file/d/1ngwh9NBUNwTgqg7BbCRA0hhaXm9qP5xA/preview?usp=drive_link" },
-      { number: 4, year: 1975, title: 'One Less Bell to Answer/A House is Not a Home', link: "https://drive.google.com/file/d/13H0n9mde8cZrM2aMVZ09zB7YYZV1BU_o/preview?usp=drive_link" },
-      { number: 4, year: 1979, title: 'Oh! Susanna', link: "https://drive.google.com/file/d/1aiaBnm4L0Pa7EGeIHmwtgfPVcTo_cHEj/preview?usp=drive_link" },
-      { number: 4, year: 1968, title: 'A Taste of Honey', link: "https://drive.google.com/file/d/1dWHEy93cOsLHxxLq-gIkKfzENh9TxF1Q/preview?usp=drive_link" },
-      { number: 4, year: 1974, title: 'Without a Song', link: "https://drive.google.com/file/d/1fEPUIj5f6ExNIU1Wv6MOhLmZc2nFNLsh/preview?usp=drive_link" },
-      { number: 5, year: 1979, title: 'Approaching Storm', link: "https://drive.google.com/file/d/1F3PtlnwzT-ZPjDI2yXbv1xLnkpWNmAP-/preview?usp=drive_link" },
-      { number: 5, year: 1972, title: "I Couldn't Live Without Your Love", link: "https://drive.google.com/file/d/1ox01Lexf755i2eWNkMRgJenL8gXtqunI/preview?usp=drive_link" },
-      { number: 5, year: 1967, title: 'Stardust', link: "https://drive.google.com/file/d/19KrgrWDLlYZGBRqrxYSQDS_rJXS6sJi8/preview?usp=drive_link" },
-      { number: 5, year: 1971, title: 'Wedding Bell Blues', link: "https://drive.google.com/file/d/1GlhyrXGI-_E3tPpi-LOkKGlQuiTY427W/preview?usp=drive_link" },
-      { number: 5, year: 1970, title: 'Galveston', link: "https://drive.google.com/file/d/1drhMXnA_djFj84lQi0u94b-MozMXfQeW/preview?usp=drive_link" },
-      { number: 5, year: 1975, title: 'Listen to the Music/Free Ride/I Got The Music in Me', link: "https://drive.google.com/file/d/1Nj_EegcMQVclJiTLKhRPaQ5S8ZQNh-6U/preview?usp=drive_link" },
-      { number: 5, year: 1973, title: 'Hallelujah, I Believe (Spiritual)', link: "https://drive.google.com/file/d/1-7NW3gVSUPfA7GN6avw8lOd5n9bYVN80/preview?usp=drive_link" },
-      { number: 5, year: 1974, title: 'Praise Ye the Lord', link: "https://drive.google.com/file/d/19BaVJ1Epx2xGWFrYPNFZlg_p3azkiAL8/preview?usp=drive_link" },
-      { number: 5, year: 1969, title: 'Cherish', link: "https://drive.google.com/file/d/1S-Y6cnpsKkcHVQ18ohSolqjX8XHLpniq/preview?usp=drive_link" },
-      { number: 5, year: 1968, title: 'Up, Up, and Away', link: "https://drive.google.com/file/d/1Kn49GKkn5__XrVxmy9MgqIokmL80TQY0/preview?usp=drive_link" },
-      { number: 6, year: 1975, title: "Alexander's Ragtime Band", link: "https://drive.google.com/file/d/1agCMyP3uU7uf-E8mTyAOR7VbE0MRUTeC/preview?usp=drive_link" },
-      { number: 6, year: 1973, title: 'Lazy Bones', link: "https://drive.google.com/file/d/1SF_jY2aZF4hmP9uqwJumuCrXkeIFyW1z/preview?usp=drive_link" },
-      { number: 6, year: 1972, title: "Promises, Promises Medley Promises Promises, I'll Never Fall in Love Again, Wanting Things, Knowing When to Leave, ", link: "https://drive.google.com/file/d/1VP4-FJ3B1NiiRHBS2KALQJs1bpP2f8Bo/preview?usp=drive_link" },
-      { number: 6, year: 1974, title: 'St. Louis Blues', link: "https://drive.google.com/file/d/1BvLxNOwJA3wBFOL0CgVd0CtEBR_tn5xG/preview?usp=drive_link" },
-      { number: 6, year: 1979, title: "Don't Take Away the Music | Whenever I See Your Smiling Face", link: "https://drive.google.com/file/d/19n0X0utbdZ8SuB_OLdAxA67y93qQxkHM/preview?usp=drive_link" },
-      { number: 6, year: 1968, title: 'This Could Be The Start of Something Big', link: "https://drive.google.com/file/d/1Ob4g853Mm-C9Oqbh_1Jdi24bV7r749nP/preview?usp=drive_link" },
-      { number: 6, year: 1971, title: 'Walk Him Up the Stairs', link: "https://drive.google.com/file/d/1qSv6laZ8vgE-YtBcuTcEcf4qA3bzlSmJ/preview?usp=drive_link" },
-      { number: 6, year: 1969, title: 'Are You Going to Scarborough Fair?', link: "https://drive.google.com/file/d/1rYQGQj_Z5x6NsW8fsqIRP1nrqUZPjgQ4/preview?usp=drive_link" },
-      { number: 6, year: 1970, title: 'Do You Know the Way to San Jose', link: "https://drive.google.com/file/d/1flLDudgUSMVjytZb3gyJUp8d7utvdaVS/preview?usp=drive_link" },
-      { number: 7, year: 1971, title: 'Calendar Medley The Day Before Spring, It Might As Well Be Spring, Sining in The Rain, June is Busting Out All Over, In the Good Ole Summertime, Summertime, September Song, September in the Rain, Indian Summer, Snowfall, Let it Snow', link: "https://drive.google.com/file/d/1p9kFACgzNBRqxYxPdhwXJ7HWoznEVCIL/preview?usp=drive_link" },
-      { number: 7, year: 1975, title: 'Where Is the Love', link: "https://drive.google.com/file/d/1GMPy9N4nq3ps5VJweYY679hyneDAVK-l/preview?usp=drive_link" },
-      { number: 7, year: 1969, title: 'What Now My Love', link: "https://drive.google.com/file/d/12OuQYipoGsmtbz3B67enNEUimSFHT11Z/preview?usp=drive_link" },
-      { number: 7, year: 1974, title: 'Bless the Beasts and Children', link: "https://drive.google.com/file/d/1eW0wkZcCtJDX2fitpqjo2LqJoF6ILXHz/preview?usp=drive_link" },
-      { number: 7, year: 1968, title: 'Shpoopi | For Little Girls | Candy | Michelle | Music to Watch Girls By | The Girl Friend | Mame | Hello Dolly', link: "https://drive.google.com/file/d/1OBMNbu7bXFHnXBs1MkcDAIopT4M6jfOK/preview?usp=drive_link" },
-      { number: 7, year: 1970, title: 'Rhythm of Life', link: "https://drive.google.com/file/d/1aOts5In1V8Uqs_ePtifB8JtiQiQaoaKk/preview?usp=drive_link" },
-      { number: 7, year: 1979, title: 'His Eye is on the Sparrow | Sweet Georgia Brown', link: "https://drive.google.com/file/d/1qlayRIR2QRfrUiyPCNJ7b2NHoVvzDBdy/preview?usp=drive_link" },
-      { number: 7, year: 1972, title: 'Stardust', link: "https://drive.google.com/file/d/1lrdzFhEmDRO7BuWwRu9p8E3bai_AeJlv/preview?usp=drive_link" },
-      { number: 7, year: 1973, title: 'Stardust', link: "https://drive.google.com/file/d/169fn247oJCSc9cUlm9vPNCh5nL8I0d2E/preview?usp=drive_link" },
-      { number: 8, year: 1973, title: 'Up a Lazy River', link: "https://drive.google.com/file/d/1On_TH73y4MLxjAOtjVBb6hIJZ8h4i675/preview?usp=drive_link" },
-      { number: 8, year: 1975, title: 'TV Commercial Medley', link: "https://drive.google.com/file/d/1fgs6QdIPSPooUTOa89VbwYE3Mtk-fzEM/preview?usp=drive_link" },
-      { number: 8, year: 1972, title: 'Day by Day', link: "https://drive.google.com/file/d/1nz2X3kwJHY1BLd8M0g9v5XRD00UXVLXk/preview?usp=drive_link" },
-      { number: 8, year: 1969, title: 'Mr. Lucky', link: "https://drive.google.com/file/d/1shIxYi8Z9T3se8VFyG03pADIn4vZ_J0n/preview?usp=drive_link" },
-      { number: 8, year: 1971, title: 'Impossible Dream', link: "https://drive.google.com/file/d/15RoMPk5UxhvAIa4m5YVNWJITTeCfxVzS/preview?usp=drive_link" },
-      { number: 8, year: 1974, title: 'I Get Along Without You Very Well', link: "https://drive.google.com/file/d/1nSvqupNhPpr6Pr0sA0QMtyTUiO6WUh-q/preview?usp=drive_link" },
-      { number: 8, year: 1968, title: 'Greenfields', link: "https://drive.google.com/file/d/1OBMNbu7bXFHnXBs1MkcDAIopT4M6jfOK/preview?usp=drive_link" },
-      { number: 8, year: 1979, title: 'Embraceable You', link: "https://drive.google.com/file/d/1tEcond-xcxO7h6m_xVEQpPmO7C8jc69j/preview?usp=drive_link" },
-      { number: 8, year: 1970, title: 'Raindrops Keep Falling on My Head', link: "https://drive.google.com/file/d/1-PogzXU0mgArHKBaVWeY2j0lQ6VcSuV8/preview?usp=drive_link" },
-      { number: 9, year: 1974, title: 'Carmen Medley', link: "https://drive.google.com/file/d/1tylurOW1GHVnoXWYnzpPBRZuIDif5P0R/preview?usp=drive_link" },
-      { number: 9, year: 1969, title: "I Love You and Don't You Forget It", link: "https://drive.google.com/file/d/1_A2phkQafCSqZvFhKDM-WlldXvTD7bxo/preview?usp=drive_link" },
-      { number: 9, year: 1979, title: 'One Note Samba', link: "https://drive.google.com/file/d/1wR1X16KtuXCbJaEL8YTFfNTjd4mTl9TK/preview?usp=drive_link" },
-      { number: 9, year: 1970, title: 'A Time For Us', link: "https://drive.google.com/file/d/1CyE4zgIStwHgXhUxsPubmdRg0niXwuEL/preview?usp=drive_link" },
-      { number: 9, year: 1973, title: 'Pippin Medley: With You, Love Song, Morning Glow, Finale', link: "https://drive.google.com/file/d/1Z_FPehMl1tvBIcxDvHddPKsCe1AeT0CY/preview?usp=drive_link" },
-      { number: 9, year: 1975, title: 'Come Rain or Come Shine', link: "https://drive.google.com/file/d/1TukmjL2RIPLNL2Ep4v6tbEcR957JoJLh/preview?usp=drive_link" },
-      { number: 9, year: 1968, title: 'Robert and Elizabeth Soliloquy', link: "https://drive.google.com/file/d/1ld1hk9qBE4nCWgVSz8XauQXj0Nu62c2M/preview?usp=drive_link" },
-      { number: 10, year: 1979, title: 'Too-ra-loo-ra-loo-ra!', link: "https://drive.google.com/file/d/1cKKAhrc_UCB390pCUfOl5_1Gr_V5zFud/preview?usp=drive_link" },
-      { number: 10, year: 1970, title: 'Doin the Raccoon, Shine on Harvest Moon', link: "https://drive.google.com/file/d/1878YC20YKvVcEMG4DxrvWuxGFyf0iOwW/preview?usp=drive_link" },
-      { number: 10, year: 1969, title: 'Baby Elephant Walk', link: "https://drive.google.com/file/d/1yGnafTCY4N_FH5_MAjfGfgd3Xx5bqjgq/preview?usp=drive_link" },
-      { number: 10, year: 1975, title: 'Stardust', link: "https://drive.google.com/file/d/1QCRfZ-MRp8LP5aMOoAx-wI8wFueBjoeq/preview?usp=drive_link" },
-      { number: 10, year: 1968, title: 'In the Cool Cool of the Evening', link: "https://drive.google.com/file/d/135VJHHuqfIiyoXwWWtfnH05UnKli5Ua-/preview?usp=drive_link" },
-      { number: 11, year: 1979, title: 'Hallelujah, Baby', link: "https://drive.google.com/file/d/19OYFSgzCMJO9d_T5hWYdwW0qOD7mDVX9/preview?usp=drive_link" },
-      { number: 11, year: 1969, title: 'Days of Wine and Roses', link: "https://drive.google.com/file/d/1XzPFQC_wbdEOTFbXU6UeJlGE0_69j_6Z/preview?usp=drive_link" },
-      { number: 11, year: 1975, title: 'I Can See Clearly Now/Higher and Higher', link: "https://drive.google.com/file/d/1sMJaTQYPqnZpc7zzUh55pWD0n2oXNau1/preview?usp=drive_link" },
-      { number: 11, year: 1970, title: 'Hoagy Carmichael Medley: Georgia, Two Sleepy People, Ole Buttermilk Sky, The Nearness of You, ', link: "https://drive.google.com/file/d/1ASX9pSq26QZqtSGRwo8mYM2QRuF8MDd0/preview?usp=drive_link" },
-      { number: 11, year: 1968, title: 'Up a Lazy River', link: "https://drive.google.com/file/d/1skHpob44dO92Lt9h42O59Hin6jsXJHh8/preview?usp=drive_link" },
-      { number: 12, year: 1969, title: 'Moon River', link: "https://drive.google.com/file/d/1ZhD6FfsVecpBhTVOA4rmnqigCKQikMo6/preview?usp=drive_link" },
-      { number: 12, year: 1970, title: 'Age of Aquarius/Let the Sunshine In', link: "https://drive.google.com/file/d/1nsTz2WTUbosOnmq1d6MSk3KHNAzZagRj/preview?usp=drive_link" },
-      { number: 12, year: 1979, title: 'God Bless America', link: "https://drive.google.com/file/d/1XvHSFJrhn7J3tWgWXG7j9q0HJ66LnikB/preview?usp=drive_link" },
-      { number: 13, year: 1969, title: 'Fine And Dandy', link: "https://drive.google.com/file/d/1noqVeuzk5DzlaoZV_UGgbZxAKPFirTnO/preview?usp=drive_link" },
-      { number: 14, year: 1969, title: 'Love Is Blue', link: "https://drive.google.com/file/d/1ZukPRKFIHLG9PkXw6sdHvTqgERU-pQpL/preview?usp=drive_link" },
-      { number: 15, year: 1969, title: 'That Sunday, That Summer', link: "https://drive.google.com/file/d/1Db8IiqZOq9ymeWM7NAdErNn-BfHyq4af/preview?usp=drive_link" },
-      { number: 16, year: 1969, title: 'Battle Hymn of the Republic', link: "https://drive.google.com/file/d/1xQ6cR8XMGONXijC-VF_KVHG3zVzePLS2/preview?usp=drive_link" }
-    ];
+    // JavaScript to handle filtering and track selection
+    const yearFilter = document.getElementById('yearFilter');
+    const searchBox = document.getElementById('searchBox');
+    const trackListItems = document.querySelectorAll('#trackList li');
+    const audioPlayer = document.getElementById('audioPlayer');
+    let currentPlayingItem = null;
 
-    const yearSelect = document.getElementById("yearSelect");
-    const searchInput = document.getElementById("searchInput");
-    const trackList = document.getElementById("trackList");
+    function applyFilters() {
+      const yearVal = yearFilter.value;
+      const query = searchBox.value.toLowerCase();
+      trackListItems.forEach(li => {
+        const matchesYear = (yearVal === "All" || li.getAttribute('data-year') === yearVal);
+        const matchesText = li.textContent.toLowerCase().includes(query);
+        li.style.display = (matchesYear && matchesText) ? "" : "none";
+      });
+    }
 
-    const years = [...new Set(tracks.map(t => t.year))].sort((a, b) => a - b);
-    years.forEach(year => {
-      const option = document.createElement("option");
-      option.value = year;
-      option.textContent = year;
-      yearSelect.appendChild(option);
+    // Event listeners for filtering
+    yearFilter.addEventListener('change', applyFilters);
+    searchBox.addEventListener('input', applyFilters);
+
+    // Event listener for track selection
+    trackListItems.forEach(li => {
+      li.addEventListener('click', () => {
+        // Highlight the active track
+        if (currentPlayingItem) currentPlayingItem.classList.remove('playing');
+        li.classList.add('playing');
+        currentPlayingItem = li;
+        // Load and play the selected track
+        const src = li.getAttribute('data-src');
+        audioPlayer.pause();
+        audioPlayer.src = src;
+        audioPlayer.load();
+        audioPlayer.play();
+      });
     });
-
-    function filterTracks() {
-      const selectedYear = yearSelect.value;
-      const searchQuery = searchInput.value.toLowerCase();
-      trackList.innerHTML = "";
-
-      const filtered = tracks.filter(t =>
-        (!selectedYear || t.year == selectedYear) &&
-        (!searchQuery || t.title.toLowerCase().includes(searchQuery))
-      );
-
-      filtered.forEach((track, index) => {
-        const div = document.createElement("div");
-        div.className = "track";
-
-        const title = document.createElement("div");
-        title.className = "track-title";
-        title.textContent = `${track.number}. [${track.year}] - ${track.title}`;
-        title.addEventListener("click", () => togglePlayer(index));
-
-        const player = document.createElement("div");
-        player.className = "player";
-        const iframe = document.createElement("iframe");
-        iframe.src = track.link;
-        player.appendChild(iframe);
-
-        div.appendChild(title);
-        div.appendChild(player);
-        trackList.appendChild(div);
-      });
-    }
-
-    function togglePlayer(index) {
-      document.querySelectorAll(".player").forEach((el, i) => {
-        el.style.display = (i === index && el.style.display !== "block") ? "block" : "none";
-      });
-    }
-
-    filterTracks();
   </script>
 </body>
 </html>
