@@ -1,0 +1,186 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Singing Hoosiers Jukebox (Single Player)</title>
+  <style>
+    body { font-family: sans-serif; background: #f9f9f9; padding: 20px; max-width: 800px; margin: auto; }
+    h1 { text-align: center; color: #c00; }
+    .controls { margin-bottom: 20px; }
+    .controls input, .controls select {
+      padding: 10px;
+      width: 100%;
+      font-size: 16px;
+      margin-bottom: 10px;
+    }
+    ul { list-style: none; padding: 0; }
+    li { background: #fff; padding: 12px; border-bottom: 1px solid #ccc; cursor: pointer; }
+    li.playing { background: #d9fdd3; }
+    audio { width: 100%; margin-top: 20px; }
+  </style>
+</head>
+<body>
+  <h1>🎶 Singing Hoosiers Jukebox 🎶</h1>
+  <div class="controls">
+    <input type="text" id="searchBox" placeholder="Search song title..." />
+    <select id="yearFilter">
+      <option value="">-- All Years --</option>
+    </select>
+  </div>
+
+  <ul id="trackList"></ul>
+  <audio id="audioPlayer" controls preload="none"></audio>
+
+  <script>
+    const tracks = [
+      { number: 1, year: 1967, title: "Broadway Medley: I Got Rythm | I Got Plenty O' Nuttin' | I Got the Sun in The Monring | A Wonderful Day Like Today | Another Opening, Another Show", link: "https://docs.google.com/uc?export=download&id=1knbRwUFrBJeG_K9uMSv0iYu22mjilLrW" },
+      { number: 1, year: 1979, title: 'Everyday', link: "https://docs.google.com/uc?export=download&id=1qRLIMpHo6xn05wJrZG_s07YH-5r87OXh" },
+      { number: 1, year: 1975, title: 'Put On a Happy Face/Smile Medley', link: "https://docs.google.com/uc?export=download&id=1jiLCMlSHajIujovveey1E2LscNoxX6HZ" },
+      { number: 1, year: 1974, title: 'I Can See Clearly Now/Higher and Higher', link: "https://docs.google.com/uc?export=download&id=177nJaoh7k-jOU-Up4b1wj3NoAZGRF1_R" },
+      { number: 1, year: 1973, title: 'I Got Love/Got to Get You Into My Life', link: "https://docs.google.com/uc?export=download&id=1hXldrA2O1uoARF9V4Gg6ZyftOtzv_g6P" },
+      { number: 1, year: 1972, title: 'The Tavern of Loving People', link: "https://docs.google.com/uc?export=download&id=1bPI3YQHYi7wVyiv6S7EZ4s0sYY50tq17" },
+      { number: 1, year: 1971, title: 'Applause ', link: "https://docs.google.com/uc?export=download&id=12eEivY0BWaMY5iDxRR_7cYmmSx73zShD" },
+      { number: 1, year: 1970, title: "Opening Medley: All I Need is the Girl, Everything's Coming Up Roses, It's Today", link: "https://docs.google.com/uc?export=download&id=1QD_tvSbVIjUgUrW_YEuIgRGln_cfFPcs" },
+      { number: 1, year: 1969, title: "Broadway Medley: I Got Rythm | I Got Plenty O' Nuttin' | I Got the Sun in The Monring | A Wonderful Day Like Today | Another Opening, Another Show", link: "https://docs.google.com/uc?export=download&id=1HHlMTbgEavW2mQMS14cE7FxsFCucSzvl" },
+      { number: 1, year: 1981, title: 'This Could Be The Start of Something Big', link: "https://docs.google.com/uc?export=download&id=1iUiKYn5g4CBfBJm5WuWMMNMjeBOWEBia" },
+      { number: 1, year: 1968, title: "Broadway Medley: I Got Rythm | I Got Plenty O' Nuttin' | I Got the Sun in The Monring | Facsinating Rythm | Walking Happy | A Wonderful Day Like Today | Another Opening, Another Show ", link: "https://docs.google.com/uc?export=download&id=1_6awqPKHhp8GYoPDzbXZZQOq-JyzYCoM" },
+      { number: 2, year: 1973, title: 'Light Sings', link: "https://docs.google.com/uc?export=download&id=1cKzhT2IrpdEyp7KgHGJvF9yQqJOOn-yE" },
+      { number: 2, year: 1972, title: "Disney Medley: When You Wish Upon a Star, Mickey Mouse, Who's Afraid of the Big Bad Wolf, Some Day My Prince Will Come, Whistle While You Work, Hi-Ho, I Got No Strings, Propaganda Donald Duck, Bippety Boppity Boo, Cinderella, A Dream is a Wish Your Heart Makes, I'm Late, Neverland, Whale of a Tale, Supercalifragilisticexpialidocious, Chim-Chiminey\n", link: "https://docs.google.com/uc?export=download&id=1kqyvzGom--AmF0Y0kxBCQQCpKTijNQ3M" },
+      { number: 2, year: 1979, title: 'You Needed Me', link: "https://docs.google.com/uc?export=download&id=1iOhYJJbLdCHG8f_IIbCUklUNal8byu-i" },
+      { number: 2, year: 1974, title: 'East of the Sun', link: "https://docs.google.com/uc?export=download&id=1ptnkzGDWIRHwFuLM8URf3FzNKblsCv3K" },
+      { number: 2, year: 1969, title: 'Five Foot Two, Eyes of Blue | Exactly Like You | For Me and My Gal', link: "https://docs.google.com/uc?export=download&id=11n2VidQf8Wov3UQaA_vyRRrnK2-fe-Pp" },
+      { number: 2, year: 1971, title: 'Love Story, Where Do I Begin ', link: "https://docs.google.com/uc?export=download&id=1jlqHyb5wMl7kHxSMZ4kcNEcR1AU1Qf1a" },
+      { number: 2, year: 1968, title: 'Step to the Rear', link: "https://docs.google.com/uc?export=download&id=1CdvuEHSuBG-EPmp4GPjnUpEDcvVF7TNB" },
+      { number: 2, year: 1967, title: 'These Foolish Things', link: "https://docs.google.com/uc?export=download&id=1bxia5Hfdz4DbogE_BWPGIGnxEaAgmS-B" },
+      { number: 2, year: 1970, title: 'This Guy’s in Love With You', link: "https://docs.google.com/uc?export=download&id=1h-yfemGzmNP4aq3BIq2w4UsUj1IzphkZ" },
+      { number: 2, year: 1975, title: "Soon It's Gonna Rain", link: "https://docs.google.com/uc?export=download&id=1FxbeiiJqXiXAZEy2zCvaAPTmd82JGQu6" },
+      { number: 3, year: 1972, title: 'Battle Hymn of the Republic (Organ Version)', link: "https://docs.google.com/uc?export=download&id=1AUIu2IJQQpIl5l1mNokrKwgx_Y6gQlsv" },
+      { number: 3, year: 1974, title: '?', link: "https://docs.google.com/uc?export=download&id=1m42U1J5jFAPXnaUY0cOAP1mozcll3U6a" },
+      { number: 3, year: 1967, title: 'Zipadeedooda', link: "https://docs.google.com/uc?export=download&id=1FwhxL71iY1lMQ7Sv5xxp2ywyHIWTICeV" },
+      { number: 3, year: 1975, title: 'Rhythm of Life', link: "https://docs.google.com/uc?export=download&id=1x4I2scIoXUu2FxGUihYoB7qyhq3rFoVh" },
+      { number: 3, year: 1968, title: 'The Way You Look Tonight', link: "https://docs.google.com/uc?export=download&id=1-hHlfP2ssMrNdE-fgW8CYfXw5CLPu-s6" },
+      { number: 3, year: 1973, title: 'Up, Up and Away', link: "https://docs.google.com/uc?export=download&id=1ilc6997F0Bkq4XHH6aMDzNMxzOm1mJLV" },
+      { number: 3, year: 1969, title: 'A Man and a Woman', link: "https://docs.google.com/uc?export=download&id=1lMdqU37hJTTgeC5Gz0NgFcXk_nltjxz0" },
+      { number: 3, year: 1971, title: 'Bewitched, Bothered, and Bewildered', link: "https://docs.google.com/uc?export=download&id=1mU4LiYJyJkCqCDSzPh0ITxWzOGrL4iW1" },
+      { number: 3, year: 1979, title: 'Copacabana', link: "https://docs.google.com/uc?export=download&id=1qqShhSwmvSgNQXhDINpJ166b8FyqxZJ2" },
+      { number: 3, year: 1970, title: 'Nothing Can Stop Me Now!', link: "https://docs.google.com/uc?export=download&id=1dKCMgeeIJxr4In0NQj4G4QYizaQsaTRl" },
+      { number: 4, year: 1967, title: 'Western Medley: I Am Bound for the Promised Land | Shenandoah | Gonna Raise a Ruckus Tonight | Fare You Well, My Darling | Come Share My Life', link: "https://docs.google.com/uc?export=download&id=1DrioHaiZopRGztvYMXXFYUqSZXW5tgkI" },
+      { number: 4, year: 1970, title: 'The Lamp Is Low', link: "https://docs.google.com/uc?export=download&id=1-5Aeia3JscfPIBeMzUnQb1jEJd1I4yV-" },
+      { number: 4, year: 1971, title: 'Cresent Moon', link: "https://docs.google.com/uc?export=download&id=1yq09PPogiG1TQH9SpwzwYimxtBs5-8Zt" },
+      { number: 4, year: 1973, title: 'Celebration', link: "https://docs.google.com/uc?export=download&id=1-Q3DPK_2PyWnCAZWsduOUZ-DTPAmw-bp" },
+      { number: 4, year: 1972, title: 'Flim Flam Man', link: "https://docs.google.com/uc?export=download&id=1lkVbGv81kdz0TwnTPAC_j-2vbXPWtVCS" },
+      { number: 4, year: 1969, title: "Goin' Out of My Head", link: "https://docs.google.com/uc?export=download&id=1ngwh9NBUNwTgqg7BbCRA0hhaXm9qP5xA" },
+      { number: 4, year: 1975, title: 'One Less Bell to Answer/A House is Not a Home', link: "https://docs.google.com/uc?export=download&id=13H0n9mde8cZrM2aMVZ09zB7YYZV1BU_o" },
+      { number: 4, year: 1979, title: 'Oh! Susanna', link: "https://docs.google.com/uc?export=download&id=1aiaBnm4L0Pa7EGeIHmwtgfPVcTo_cHEj" },
+      { number: 4, year: 1968, title: 'A Taste of Honey', link: "https://docs.google.com/uc?export=download&id=1dWHEy93cOsLHxxLq-gIkKfzENh9TxF1Q" },
+      { number: 4, year: 1974, title: 'Without a Song', link: "https://docs.google.com/uc?export=download&id=1fEPUIj5f6ExNIU1Wv6MOhLmZc2nFNLsh" },
+      { number: 5, year: 1979, title: 'Approaching Storm', link: "https://docs.google.com/uc?export=download&id=1F3PtlnwzT-ZPjDI2yXbv1xLnkpWNmAP-" },
+      { number: 5, year: 1972, title: "I Couldn't Live Without Your Love", link: "https://docs.google.com/uc?export=download&id=1ox01Lexf755i2eWNkMRgJenL8gXtqunI" },
+      { number: 5, year: 1967, title: 'Stardust', link: "https://docs.google.com/uc?export=download&id=19KrgrWDLlYZGBRqrxYSQDS_rJXS6sJi8" },
+      { number: 5, year: 1971, title: 'Wedding Bell Blues', link: "https://docs.google.com/uc?export=download&id=1GlhyrXGI-_E3tPpi-LOkKGlQuiTY427W" },
+      { number: 5, year: 1970, title: 'Galveston', link: "https://docs.google.com/uc?export=download&id=1drhMXnA_djFj84lQi0u94b-MozMXfQeW" },
+      { number: 5, year: 1975, title: 'Listen to the Music/Free Ride/I Got The Music in Me', link: "https://docs.google.com/uc?export=download&id=1Nj_EegcMQVclJiTLKhRPaQ5S8ZQNh-6U" },
+      { number: 5, year: 1973, title: 'Hallelujah, I Believe (Spiritual)', link: "https://docs.google.com/uc?export=download&id=1-7NW3gVSUPfA7GN6avw8lOd5n9bYVN80" },
+      { number: 5, year: 1974, title: 'Praise Ye the Lord', link: "https://docs.google.com/uc?export=download&id=19BaVJ1Epx2xGWFrYPNFZlg_p3azkiAL8" },
+      { number: 5, year: 1969, title: 'Cherish', link: "https://docs.google.com/uc?export=download&id=1S-Y6cnpsKkcHVQ18ohSolqjX8XHLpniq" },
+      { number: 5, year: 1968, title: 'Up, Up, and Away', link: "https://docs.google.com/uc?export=download&id=1Kn49GKkn5__XrVxmy9MgqIokmL80TQY0" },
+      { number: 6, year: 1975, title: "Alexander's Ragtime Band", link: "https://docs.google.com/uc?export=download&id=1agCMyP3uU7uf-E8mTyAOR7VbE0MRUTeC" },
+      { number: 6, year: 1973, title: 'Lazy Bones', link: "https://docs.google.com/uc?export=download&id=1SF_jY2aZF4hmP9uqwJumuCrXkeIFyW1z" },
+      { number: 6, year: 1972, title: "Promises, Promises Medley Promises Promises, I'll Never Fall in Love Again, Wanting Things, Knowing When to Leave, ", link: "https://docs.google.com/uc?export=download&id=1VP4-FJ3B1NiiRHBS2KALQJs1bpP2f8Bo" },
+      { number: 6, year: 1974, title: 'St. Louis Blues', link: "https://docs.google.com/uc?export=download&id=1BvLxNOwJA3wBFOL0CgVd0CtEBR_tn5xG" },
+      { number: 6, year: 1979, title: "Don't Take Away the Music | Whenever I See Your Smiling Face", link: "https://docs.google.com/uc?export=download&id=19n0X0utbdZ8SuB_OLdAxA67y93qQxkHM" },
+      { number: 6, year: 1968, title: 'This Could Be The Start of Something Big', link: "https://docs.google.com/uc?export=download&id=1Ob4g853Mm-C9Oqbh_1Jdi24bV7r749nP" },
+      { number: 6, year: 1971, title: 'Walk Him Up the Stairs', link: "https://docs.google.com/uc?export=download&id=1qSv6laZ8vgE-YtBcuTcEcf4qA3bzlSmJ" },
+      { number: 6, year: 1969, title: 'Are You Going to Scarborough Fair?', link: "https://docs.google.com/uc?export=download&id=1rYQGQj_Z5x6NsW8fsqIRP1nrqUZPjgQ4" },
+      { number: 6, year: 1970, title: 'Do You Know the Way to San Jose', link: "https://docs.google.com/uc?export=download&id=1flLDudgUSMVjytZb3gyJUp8d7utvdaVS" },
+      { number: 7, year: 1971, title: 'Calendar Medley The Day Before Spring, It Might As Well Be Spring, Sining in The Rain, June is Busting Out All Over, In the Good Ole Summertime, Summertime, September Song, September in the Rain, Indian Summer, Snowfall, Let it Snow', link: "https://docs.google.com/uc?export=download&id=1p9kFACgzNBRqxYxPdhwXJ7HWoznEVCIL" },
+      { number: 7, year: 1975, title: 'Where Is the Love', link: "https://docs.google.com/uc?export=download&id=1GMPy9N4nq3ps5VJweYY679hyneDAVK-l" },
+      { number: 7, year: 1969, title: 'What Now My Love', link: "https://docs.google.com/uc?export=download&id=12OuQYipoGsmtbz3B67enNEUimSFHT11Z" },
+      { number: 7, year: 1974, title: 'Bless the Beasts and Children', link: "https://docs.google.com/uc?export=download&id=1eW0wkZcCtJDX2fitpqjo2LqJoF6ILXHz" },
+      { number: 7, year: 1968, title: 'Shpoopi | For Little Girls | Candy | Michelle | Music to Watch Girls By | The Girl Friend | Mame | Hello Dolly', link: "https://docs.google.com/uc?export=download&id=1OBMNbu7bXFHnXBs1MkcDAIopT4M6jfOK" },
+      { number: 7, year: 1970, title: 'Rhythm of Life', link: "https://docs.google.com/uc?export=download&id=1aOts5In1V8Uqs_ePtifB8JtiQiQaoaKk" },
+      { number: 7, year: 1979, title: 'His Eye is on the Sparrow | Sweet Georgia Brown', link: "https://docs.google.com/uc?export=download&id=1qlayRIR2QRfrUiyPCNJ7b2NHoVvzDBdy" },
+      { number: 7, year: 1972, title: 'Stardust', link: "https://docs.google.com/uc?export=download&id=1lrdzFhEmDRO7BuWwRu9p8E3bai_AeJlv" },
+      { number: 7, year: 1973, title: 'Stardust', link: "https://docs.google.com/uc?export=download&id=169fn247oJCSc9cUlm9vPNCh5nL8I0d2E" },
+      { number: 8, year: 1973, title: 'Up a Lazy River', link: "https://docs.google.com/uc?export=download&id=1On_TH73y4MLxjAOtjVBb6hIJZ8h4i675" },
+      { number: 8, year: 1975, title: 'TV Commercial Medley', link: "https://docs.google.com/uc?export=download&id=1fgs6QdIPSPooUTOa89VbwYE3Mtk-fzEM" },
+      { number: 8, year: 1972, title: 'Day by Day', link: "https://docs.google.com/uc?export=download&id=1nz2X3kwJHY1BLd8M0g9v5XRD00UXVLXk" },
+      { number: 8, year: 1969, title: 'Mr. Lucky', link: "https://docs.google.com/uc?export=download&id=1shIxYi8Z9T3se8VFyG03pADIn4vZ_J0n" },
+      { number: 8, year: 1971, title: 'Impossible Dream', link: "https://docs.google.com/uc?export=download&id=15RoMPk5UxhvAIa4m5YVNWJITTeCfxVzS" },
+      { number: 8, year: 1974, title: 'I Get Along Without You Very Well', link: "https://docs.google.com/uc?export=download&id=1nSvqupNhPpr6Pr0sA0QMtyTUiO6WUh-q" },
+      { number: 8, year: 1968, title: 'Greenfields', link: "https://docs.google.com/uc?export=download&id=1OBMNbu7bXFHnXBs1MkcDAIopT4M6jfOK" },
+      { number: 8, year: 1979, title: 'Embraceable You', link: "https://docs.google.com/uc?export=download&id=1tEcond-xcxO7h6m_xVEQpPmO7C8jc69j" },
+      { number: 8, year: 1970, title: 'Raindrops Keep Falling on My Head', link: "https://docs.google.com/uc?export=download&id=1-PogzXU0mgArHKBaVWeY2j0lQ6VcSuV8" },
+      { number: 9, year: 1974, title: 'Carmen Medley', link: "https://docs.google.com/uc?export=download&id=1tylurOW1GHVnoXWYnzpPBRZuIDif5P0R" },
+      { number: 9, year: 1969, title: "I Love You and Don't You Forget It", link: "https://docs.google.com/uc?export=download&id=1_A2phkQafCSqZvFhKDM-WlldXvTD7bxo" },
+      { number: 9, year: 1979, title: 'One Note Samba', link: "https://docs.google.com/uc?export=download&id=1wR1X16KtuXCbJaEL8YTFfNTjd4mTl9TK" },
+      { number: 9, year: 1970, title: 'A Time For Us', link: "https://docs.google.com/uc?export=download&id=1CyE4zgIStwHgXhUxsPubmdRg0niXwuEL" },
+      { number: 9, year: 1973, title: 'Pippin Medley: With You, Love Song, Morning Glow, Finale', link: "https://docs.google.com/uc?export=download&id=1Z_FPehMl1tvBIcxDvHddPKsCe1AeT0CY" },
+      { number: 9, year: 1975, title: 'Come Rain or Come Shine', link: "https://docs.google.com/uc?export=download&id=1TukmjL2RIPLNL2Ep4v6tbEcR957JoJLh" },
+      { number: 9, year: 1968, title: 'Robert and Elizabeth Soliloquy', link: "https://docs.google.com/uc?export=download&id=1ld1hk9qBE4nCWgVSz8XauQXj0Nu62c2M" },
+      { number: 10, year: 1979, title: 'Too-ra-loo-ra-loo-ra!', link: "https://docs.google.com/uc?export=download&id=1cKKAhrc_UCB390pCUfOl5_1Gr_V5zFud" },
+      { number: 10, year: 1970, title: 'Doin the Raccoon, Shine on Harvest Moon', link: "https://docs.google.com/uc?export=download&id=1878YC20YKvVcEMG4DxrvWuxGFyf0iOwW" },
+      { number: 10, year: 1969, title: 'Baby Elephant Walk', link: "https://docs.google.com/uc?export=download&id=1yGnafTCY4N_FH5_MAjfGfgd3Xx5bqjgq" },
+      { number: 10, year: 1975, title: 'Stardust', link: "https://docs.google.com/uc?export=download&id=1QCRfZ-MRp8LP5aMOoAx-wI8wFueBjoeq" },
+      { number: 10, year: 1968, title: 'In the Cool Cool of the Evening', link: "https://docs.google.com/uc?export=download&id=135VJHHuqfIiyoXwWWtfnH05UnKli5Ua-" },
+      { number: 11, year: 1979, title: 'Hallelujah, Baby', link: "https://docs.google.com/uc?export=download&id=19OYFSgzCMJO9d_T5hWYdwW0qOD7mDVX9" },
+      { number: 11, year: 1969, title: 'Days of Wine and Roses', link: "https://docs.google.com/uc?export=download&id=1XzPFQC_wbdEOTFbXU6UeJlGE0_69j_6Z" },
+      { number: 11, year: 1975, title: 'I Can See Clearly Now/Higher and Higher', link: "https://docs.google.com/uc?export=download&id=1sMJaTQYPqnZpc7zzUh55pWD0n2oXNau1" },
+      { number: 11, year: 1970, title: 'Hoagy Carmichael Medley: Georgia, Two Sleepy People, Ole Buttermilk Sky, The Nearness of You, ', link: "https://docs.google.com/uc?export=download&id=1ASX9pSq26QZqtSGRwo8mYM2QRuF8MDd0" },
+      { number: 11, year: 1968, title: 'Up a Lazy River', link: "https://docs.google.com/uc?export=download&id=1skHpob44dO92Lt9h42O59Hin6jsXJHh8" },
+      { number: 12, year: 1969, title: 'Moon River', link: "https://docs.google.com/uc?export=download&id=1ZhD6FfsVecpBhTVOA4rmnqigCKQikMo6" },
+      { number: 12, year: 1970, title: 'Age of Aquarius/Let the Sunshine In', link: "https://docs.google.com/uc?export=download&id=1nsTz2WTUbosOnmq1d6MSk3KHNAzZagRj" },
+      { number: 12, year: 1979, title: 'God Bless America', link: "https://docs.google.com/uc?export=download&id=1XvHSFJrhn7J3tWgWXG7j9q0HJ66LnikB" },
+      { number: 13, year: 1969, title: 'Fine And Dandy', link: "https://docs.google.com/uc?export=download&id=1noqVeuzk5DzlaoZV_UGgbZxAKPFirTnO" },
+      { number: 14, year: 1969, title: 'Love Is Blue', link: "https://docs.google.com/uc?export=download&id=1ZukPRKFIHLG9PkXw6sdHvTqgERU-pQpL" },
+      { number: 15, year: 1969, title: 'That Sunday, That Summer', link: "https://docs.google.com/uc?export=download&id=1Db8IiqZOq9ymeWM7NAdErNn-BfHyq4af" },
+      { number: 16, year: 1969, title: 'Battle Hymn of the Republic', link: "https://docs.google.com/uc?export=download&id=1xQ6cR8XMGONXijC-VF_KVHG3zVzePLS2" }
+    ];
+
+    const trackList = document.getElementById("trackList");
+    const searchBox = document.getElementById("searchBox");
+    const yearFilter = document.getElementById("yearFilter");
+    const audioPlayer = document.getElementById("audioPlayer");
+    let currentItem = null;
+
+    const years = [...new Set(tracks.map(t => t.year))].sort((a, b) => a - b);
+    years.forEach(y => {
+      const opt = document.createElement("option");
+      opt.value = y;
+      opt.textContent = y;
+      yearFilter.appendChild(opt);
+    });
+
+    function renderTracks() {
+      const search = searchBox.value.toLowerCase();
+      const selectedYear = yearFilter.value;
+      trackList.innerHTML = "";
+
+      tracks.forEach((t, i) => {
+        const matchYear = !selectedYear || t.year.toString() === selectedYear;
+        const matchSearch = t.title.toLowerCase().includes(search);
+        if (matchYear && matchSearch) {
+          const li = document.createElement("li");
+          li.textContent = `${t.number}. [${t.year}] - ${t.title}`;
+          li.dataset.index = i;
+          li.onclick = () => {
+            if (currentItem) currentItem.classList.remove("playing");
+            li.classList.add("playing");
+            currentItem = li;
+            audioPlayer.src = t.link;
+            audioPlayer.play();
+          };
+          trackList.appendChild(li);
+        }
+      });
+    }
+
+    searchBox.oninput = renderTracks;
+    yearFilter.onchange = renderTracks;
+
+    renderTracks();
+  </script>
+</body>
+</html>
