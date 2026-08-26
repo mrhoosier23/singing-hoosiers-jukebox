@@ -2,6 +2,11 @@ name: Deploy SHAC audio gateway
 
 on:
   workflow_dispatch:
+  push:
+    branches: ['r2-audio-migration']
+    paths:
+      - 'cloudflare/audio-worker/**'
+      - '.github/workflows/deploy-audio-worker.yml'
 
 permissions:
   contents: read
@@ -44,5 +49,5 @@ jobs:
           {
             echo "## Audio gateway deployed"
             echo "Copy the workers.dev URL printed by Wrangler above."
-            echo "Then set NEXT_PUBLIC_AUDIO_GATEWAY_URL to that URL in the GitHub Pages build workflow and rebuild the site."
+            echo "Then save it as the repository variable AUDIO_GATEWAY_URL and rebuild GitHub Pages."
           } >> "$GITHUB_STEP_SUMMARY"
