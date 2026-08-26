@@ -4,13 +4,11 @@ on:
   pull_request:
     paths:
       - 'site/**'
-      - 'migration.py'
       - '.github/workflows/publish.yml'
   push:
     branches: ['main']
     paths:
       - 'site/**'
-      - 'migration.py'
       - '.github/workflows/publish.yml'
 
 permissions:
@@ -36,28 +34,6 @@ jobs:
         with:
           fetch-depth: 0
 
-      - name: Bootstrap current archive source if needed
-        id: bootstrap
-        run: |
-          set -euo pipefail
-          if [[ -f site/package.json ]]; then
-            echo 'Existing GitHub source found.'
-            echo 'created=false' >> "$GITHUB_OUTPUT"
-            exit 0
-          fi
-
-          echo 'First migration build. Recovering the validated archive source snapshot from SHAC Drive.'
-          SNAPSHOT='/tmp/shac-site-source.zip'
-          rm -rf site
-          mkdir -p site
-          curl -L --fail --retry 3 \
-            'https://drive.usercontent.google.com/download?id=1AlSLcCE66fSHUEFxiK8_GdcRzmAUYr0V&export=download&confirm=t' \
-            -o "$SNAPSHOT"
-          unzip -q "$SNAPSHOT" -d site
-          rm -rf site/.git site/.vinext
-          python3 migration.py site
-          echo 'created=true' >> "$GITHUB_OUTPUT"
-
       - name: Set up Node
         uses: actions/setup-node@v4
         with:
@@ -65,7 +41,7 @@ jobs:
 
       - name: Install dependencies
         working-directory: site
-        run: npm install --no-audit --no-fund
+        run: npm ci --no-audit --no-fund
 
       - name: Typecheck
         working-directory: site
@@ -78,18 +54,6 @@ jobs:
       - name: Build static export
         working-directory: site
         run: npm run build
-
-      - name: Save migrated source to GitHub
-        if: github.event_name == 'push' && github.ref == 'refs/heads/main' && steps.bootstrap.outputs.created == 'true'
-        run: |
-          set -euo pipefail
-          git add site
-          if ! git diff --cached --quiet; then
-            git config user.name 'github-actions[bot]'
-            git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
-            git commit -m 'Add migrated archive source [skip ci]'
-            git push origin HEAD:main
-          fi
 
       - name: Publish generated site into main branch root
         if: github.event_name == 'push' && github.ref == 'refs/heads/main'
@@ -116,8 +80,7 @@ jobs:
           git add -A -- . \
             ':(exclude)site/**' \
             ':(exclude).github/**' \
-            ':(exclude)README.md' \
-            ':(exclude)migration.py'
+            ':(exclude)README.md'
 
           if git diff --cached --quiet; then
             echo 'Published output is already current.'
