@@ -1,0 +1,16 @@
+{
+  "$schema": "../../node_modules/wrangler/config-schema.json",
+  "name": "singing-hoosiers-audio-gateway",
+  "main": "src/index.ts",
+  "compatibility_date": "2026-08-26",
+  "workers_dev": true,
+  "r2_buckets": [
+    {
+      "binding": "AUDIO",
+      "bucket_name": "singing-hoosiers-audio"
+    }
+  ],
+  "observability": {
+    "enabled": true
+  }
+}
