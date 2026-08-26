@@ -4,13 +4,13 @@ on:
   pull_request:
     paths:
       - 'site/**'
-      - 'migration.patch'
+      - 'migration.py'
       - '.github/workflows/publish.yml'
   push:
     branches: ['main']
     paths:
       - 'site/**'
-      - 'migration.patch'
+      - 'migration.py'
       - '.github/workflows/publish.yml'
 
 permissions:
@@ -55,7 +55,7 @@ jobs:
             -o "$SNAPSHOT"
           unzip -q "$SNAPSHOT" -d site
           rm -rf site/.git site/.vinext
-          (cd site && git apply ../migration.patch)
+          python3 migration.py site
           echo 'created=true' >> "$GITHUB_OUTPUT"
 
       - name: Set up Node
@@ -96,13 +96,11 @@ jobs:
         run: |
           set -euo pipefail
 
-          # Remove only files created by the previous static export.
           if [[ -f .pages-manifest ]]; then
             while IFS= read -r generated; do
               [[ -n "$generated" ]] && rm -f -- "$generated"
             done < .pages-manifest
           else
-            # The legacy 2025 Pages site consisted of this root entry point.
             rm -f index.html
           fi
 
@@ -115,12 +113,11 @@ jobs:
             printf '%s\n' '.nojekyll'
           } | sort -u > .pages-manifest
 
-          # Stage the published website while leaving editable source and workflow files alone.
           git add -A -- . \
             ':(exclude)site/**' \
             ':(exclude).github/**' \
             ':(exclude)README.md' \
-            ':(exclude)migration.patch'
+            ':(exclude)migration.py'
 
           if git diff --cached --quiet; then
             echo 'Published output is already current.'
