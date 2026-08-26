@@ -1,6 +1,7 @@
 name: Build and publish GitHub Pages archive
 
 on:
+  workflow_dispatch:
   pull_request:
     paths:
       - 'site/**'
