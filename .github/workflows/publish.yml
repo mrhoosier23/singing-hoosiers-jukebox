@@ -22,6 +22,7 @@ concurrency:
 env:
   GITHUB_PAGES: 'true'
   NEXT_PUBLIC_BASE_PATH: '/singing-hoosiers-jukebox'
+  NEXT_PUBLIC_AUDIO_GATEWAY_URL: ${{ vars.AUDIO_GATEWAY_URL }}
 
 jobs:
   build:
