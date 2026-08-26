@@ -1,0 +1,48 @@
+name: Deploy SHAC audio gateway
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    env:
+      CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+      CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Set up Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+
+      - name: Verify Cloudflare credentials
+        run: |
+          if [[ -z "$CLOUDFLARE_API_TOKEN" || -z "$CLOUDFLARE_ACCOUNT_ID" ]]; then
+            echo "Missing CLOUDFLARE_API_TOKEN or CLOUDFLARE_ACCOUNT_ID repository secrets."
+            exit 1
+          fi
+
+      - name: Ensure R2 bucket exists
+        run: |
+          if npx --yes wrangler@4 r2 bucket info singing-hoosiers-audio >/dev/null 2>&1; then
+            echo "R2 bucket already exists."
+          else
+            npx --yes wrangler@4 r2 bucket create singing-hoosiers-audio
+          fi
+
+      - name: Deploy audio gateway Worker
+        run: npx --yes wrangler@4 deploy --config cloudflare/audio-worker/wrangler.jsonc
+
+      - name: Next step
+        run: |
+          {
+            echo "## Audio gateway deployed"
+            echo "Copy the workers.dev URL printed by Wrangler above."
+            echo "Then set NEXT_PUBLIC_AUDIO_GATEWAY_URL to that URL in the GitHub Pages build workflow and rebuild the site."
+          } >> "$GITHUB_STEP_SUMMARY"
