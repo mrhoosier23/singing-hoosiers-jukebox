@@ -1,0 +1,133 @@
+name: Build and publish GitHub Pages archive
+
+on:
+  pull_request:
+    paths:
+      - 'site/**'
+      - 'migration.patch'
+      - '.github/workflows/publish.yml'
+  push:
+    branches: ['main']
+    paths:
+      - 'site/**'
+      - 'migration.patch'
+      - '.github/workflows/publish.yml'
+
+permissions:
+  contents: write
+
+concurrency:
+  group: singing-hoosiers-pages
+  cancel-in-progress: false
+
+env:
+  GITHUB_PAGES: 'true'
+  NEXT_PUBLIC_BASE_PATH: '/singing-hoosiers-jukebox'
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        shell: bash
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Bootstrap current archive source if needed
+        id: bootstrap
+        run: |
+          set -euo pipefail
+          if [[ -f site/package.json ]]; then
+            echo 'Existing GitHub source found.'
+            echo 'created=false' >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+
+          echo 'First migration build. Recovering the validated archive source snapshot from SHAC Drive.'
+          SNAPSHOT='/tmp/shac-site-source.zip'
+          rm -rf site
+          mkdir -p site
+          curl -L --fail --retry 3 \
+            'https://drive.usercontent.google.com/download?id=1AlSLcCE66fSHUEFxiK8_GdcRzmAUYr0V&export=download&confirm=t' \
+            -o "$SNAPSHOT"
+          unzip -q "$SNAPSHOT" -d site
+          rm -rf site/.git site/.vinext
+          (cd site && git apply ../migration.patch)
+          echo 'created=true' >> "$GITHUB_OUTPUT"
+
+      - name: Set up Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+
+      - name: Install dependencies
+        working-directory: site
+        run: npm install --no-audit --no-fund
+
+      - name: Typecheck
+        working-directory: site
+        run: npm run typecheck
+
+      - name: Lint
+        working-directory: site
+        run: npm run lint
+
+      - name: Build static export
+        working-directory: site
+        run: npm run build
+
+      - name: Save migrated source to GitHub
+        if: github.event_name == 'push' && github.ref == 'refs/heads/main' && steps.bootstrap.outputs.created == 'true'
+        run: |
+          set -euo pipefail
+          git add site
+          if ! git diff --cached --quiet; then
+            git config user.name 'github-actions[bot]'
+            git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+            git commit -m 'Add migrated archive source [skip ci]'
+            git push origin HEAD:main
+          fi
+
+      - name: Publish generated site into main branch root
+        if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+        run: |
+          set -euo pipefail
+
+          # Remove only files created by the previous static export.
+          if [[ -f .pages-manifest ]]; then
+            while IFS= read -r generated; do
+              [[ -n "$generated" ]] && rm -f -- "$generated"
+            done < .pages-manifest
+          else
+            # The legacy 2025 Pages site consisted of this root entry point.
+            rm -f index.html
+          fi
+
+          find . -mindepth 1 -type d -empty -not -path './.git*' -not -path './site*' -delete 2>/dev/null || true
+          cp -a site/out/. ./
+          touch .nojekyll
+
+          {
+            find site/out -type f -printf '%P\n'
+            printf '%s\n' '.nojekyll'
+          } | sort -u > .pages-manifest
+
+          # Stage the published website while leaving editable source and workflow files alone.
+          git add -A -- . \
+            ':(exclude)site/**' \
+            ':(exclude).github/**' \
+            ':(exclude)README.md' \
+            ':(exclude)migration.patch'
+
+          if git diff --cached --quiet; then
+            echo 'Published output is already current.'
+            exit 0
+          fi
+
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git commit -m 'Publish archive to GitHub Pages'
+          git push origin HEAD:main
