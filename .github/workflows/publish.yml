@@ -1,0 +1,94 @@
+name: Build and publish GitHub Pages archive
+
+on:
+  workflow_dispatch:
+  pull_request:
+    paths:
+      - 'site/**'
+      - '.github/workflows/publish.yml'
+  push:
+    branches: ['main']
+    paths:
+      - 'site/**'
+      - '.github/workflows/publish.yml'
+
+permissions:
+  contents: write
+
+concurrency:
+  group: singing-hoosiers-pages
+  cancel-in-progress: false
+
+env:
+  GITHUB_PAGES: 'true'
+  NEXT_PUBLIC_BASE_PATH: '/singing-hoosiers-jukebox'
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        shell: bash
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Set up Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+
+      - name: Install dependencies
+        working-directory: site
+        run: npm ci --no-audit --no-fund
+
+      - name: Typecheck
+        working-directory: site
+        run: npm run typecheck
+
+      - name: Lint
+        working-directory: site
+        run: npm run lint
+
+      - name: Build static export
+        working-directory: site
+        run: npm run build
+
+      - name: Publish generated site into main branch root
+        if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+        run: |
+          set -euo pipefail
+
+          if [[ -f .pages-manifest ]]; then
+            while IFS= read -r generated; do
+              [[ -n "$generated" ]] && rm -f -- "$generated"
+            done < .pages-manifest
+          else
+            rm -f index.html
+          fi
+
+          find . -mindepth 1 -type d -empty -not -path './.git*' -not -path './site*' -delete 2>/dev/null || true
+          cp -a site/out/. ./
+          touch .nojekyll
+
+          {
+            find site/out -type f -printf '%P\n'
+            printf '%s\n' '.nojekyll'
+          } | sort -u > .pages-manifest
+
+          git add -A -- . \
+            ':(exclude)site/**' \
+            ':(exclude).github/**' \
+            ':(exclude)README.md'
+
+          if git diff --cached --quiet; then
+            echo 'Published output is already current.'
+            exit 0
+          fi
+
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git commit -m 'Publish archive to GitHub Pages'
+          git push origin HEAD:main
