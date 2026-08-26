@@ -1,0 +1,1 @@
+The site favicon is configured in app/layout.tsx to use public/shac-logo-2025.png as the browser icon, shortcut icon, and Apple touch icon.
