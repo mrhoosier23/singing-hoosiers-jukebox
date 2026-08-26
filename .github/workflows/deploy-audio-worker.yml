@@ -26,14 +26,18 @@ jobs:
         with:
           node-version: '22'
 
-      - name: Verify Cloudflare credentials
+      - name: Check Cloudflare credentials
+        id: credentials
         run: |
           if [[ -z "$CLOUDFLARE_API_TOKEN" || -z "$CLOUDFLARE_ACCOUNT_ID" ]]; then
-            echo "Missing CLOUDFLARE_API_TOKEN or CLOUDFLARE_ACCOUNT_ID repository secrets."
-            exit 1
+            echo "ready=false" >> "$GITHUB_OUTPUT"
+            echo "Cloudflare credentials are not configured yet; deployment is being skipped without failing the branch."
+          else
+            echo "ready=true" >> "$GITHUB_OUTPUT"
           fi
 
       - name: Ensure R2 bucket exists
+        if: steps.credentials.outputs.ready == 'true'
         run: |
           if npx --yes wrangler@4 r2 bucket info singing-hoosiers-audio >/dev/null 2>&1; then
             echo "R2 bucket already exists."
@@ -42,12 +46,20 @@ jobs:
           fi
 
       - name: Deploy audio gateway Worker
+        if: steps.credentials.outputs.ready == 'true'
         run: npx --yes wrangler@4 deploy --config cloudflare/audio-worker/wrangler.jsonc
 
-      - name: Next step
+      - name: Deployment summary
         run: |
-          {
-            echo "## Audio gateway deployed"
-            echo "Copy the workers.dev URL printed by Wrangler above."
-            echo "Then save it as the repository variable AUDIO_GATEWAY_URL and rebuild GitHub Pages."
-          } >> "$GITHUB_STEP_SUMMARY"
+          if [[ "${{ steps.credentials.outputs.ready }}" == "true" ]]; then
+            {
+              echo "## Audio gateway deployed"
+              echo "Copy the workers.dev URL printed by Wrangler above."
+              echo "Then save it as the repository variable AUDIO_GATEWAY_URL and rebuild GitHub Pages."
+            } >> "$GITHUB_STEP_SUMMARY"
+          else
+            {
+              echo "## Audio gateway is ready for credentials"
+              echo "Add CLOUDFLARE_API_TOKEN and CLOUDFLARE_ACCOUNT_ID as repository Actions secrets, then rerun this workflow."
+            } >> "$GITHUB_STEP_SUMMARY"
+          fi
