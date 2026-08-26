@@ -3,6 +3,7 @@
   "name": "singing-hoosiers-audio-gateway",
   "main": "src/index.ts",
   "compatibility_date": "2026-08-26",
+  "compatibility_flags": ["nodejs_compat"],
   "workers_dev": true,
   "r2_buckets": [
     {
@@ -11,6 +12,9 @@
     }
   ],
   "observability": {
-    "enabled": true
+    "enabled": true,
+    "logs": {
+      "head_sampling_rate": 1
+    }
   }
 }
