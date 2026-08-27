@@ -1,5 +1,6 @@
 import type { Metadata } from 'next';
 import './globals.css';
+import './contrast-fixes.css';
 
 const siteUrl = 'https://mrhoosier23.github.io/singing-hoosiers-jukebox';
 const mainLogoUrl = `${siteUrl}/shac-logo-2025.png`;
