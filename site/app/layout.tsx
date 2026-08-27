@@ -1,9 +1,9 @@
 import type { Metadata } from 'next';
 import './globals.css';
+import './contrast-fixes.css';
 
 const siteUrl = 'https://mrhoosier23.github.io/singing-hoosiers-jukebox';
-const faviconUrl = `${siteUrl}/favicon.svg`;
-const faviconPngUrl = `${siteUrl}/favicon.png`;
+const faviconUrl = `${siteUrl}/favicon.png`;
 
 export const metadata: Metadata = {
   metadataBase: new URL(siteUrl),
@@ -14,12 +14,9 @@ export const metadata: Metadata = {
   description:
     'Listen across the decades, explore roadshows and photographs, search the song library, and help preserve the Singing Hoosiers story.',
   icons: {
-    icon: [
-      { url: faviconUrl, type: 'image/svg+xml' },
-      { url: faviconPngUrl, type: 'image/png' },
-    ],
-    shortcut: [{ url: faviconPngUrl, type: 'image/png' }],
-    apple: [{ url: faviconPngUrl, type: 'image/png' }],
+    icon: [{ url: faviconUrl, type: 'image/png' }],
+    shortcut: [{ url: faviconUrl, type: 'image/png' }],
+    apple: [{ url: faviconUrl, type: 'image/png' }],
   },
   openGraph: {
     title: 'Singing Hoosiers Alumni Archive',
