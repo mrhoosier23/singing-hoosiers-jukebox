@@ -1,7 +1,9 @@
-const audioGatewayBase = (process.env.NEXT_PUBLIC_AUDIO_GATEWAY_URL || '').trim().replace(/\/+$/, '');
+const DEFAULT_AUDIO_GATEWAY_URL = 'https://singing-hoosiers-audio-gateway.anwolver.workers.dev';
+const audioGatewayBase = (process.env.NEXT_PUBLIC_AUDIO_GATEWAY_URL || DEFAULT_AUDIO_GATEWAY_URL)
+  .trim()
+  .replace(/\/+$/, '');
 
 export function archiveAudioUrl(fileId: string) {
-  if (!audioGatewayBase) return null;
   return `${audioGatewayBase}/audio/${encodeURIComponent(fileId)}`;
 }
 
@@ -12,7 +14,7 @@ export function driveAudioUrl(fileId: string) {
 }
 
 export function drivePreviewUrl(fileId: string) {
-  // Temporary fallback while the R2-backed audio gateway is not configured.
+  // Emergency fallback if the R2-backed audio gateway is unavailable.
   return `https://drive.google.com/file/d/${encodeURIComponent(fileId)}/preview`;
 }
 
