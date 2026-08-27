@@ -11,6 +11,10 @@ on:
 permissions:
   contents: read
 
+env:
+  AUDIO_GATEWAY_URL: https://singing-hoosiers-audio-gateway.anwolver.workers.dev
+  SMOKE_TEST_FILE_ID: 1bxia5Hfdz4DbogE_BWPGIGnxEaAgmS-B
+
 jobs:
   deploy:
     runs-on: ubuntu-latest
@@ -73,12 +77,48 @@ jobs:
         if: steps.credentials.outputs.ready == 'true'
         run: npx --yes wrangler@4 deploy --config cloudflare/audio-worker/wrangler.jsonc
 
+      - name: Smoke test audio gateway
+        if: steps.credentials.outputs.ready == 'true'
+        run: |
+          set -euo pipefail
+          URL="$AUDIO_GATEWAY_URL/audio/$SMOKE_TEST_FILE_ID"
+          echo "Priming one archive recording into R2..."
+          curl --fail --silent --show-error \
+            -H 'Origin: https://mrhoosier23.github.io' \
+            "$URL" \
+            --output /tmp/shac-audio-smoke.bin
+
+          if [[ ! -s /tmp/shac-audio-smoke.bin ]]; then
+            echo 'Gateway returned an empty recording.'
+            exit 1
+          fi
+
+          echo "Testing byte-range playback from the cached R2 copy..."
+          STATUS="$(curl --silent --show-error --output /tmp/shac-audio-range.bin --write-out '%{http_code}' \
+            -H 'Origin: https://mrhoosier23.github.io' \
+            -H 'Range: bytes=0-1023' \
+            "$URL")"
+
+          if [[ "$STATUS" != '206' ]]; then
+            echo "Expected HTTP 206 for cached range request, got $STATUS."
+            exit 1
+          fi
+
+          BYTES="$(wc -c < /tmp/shac-audio-range.bin)"
+          if [[ "$BYTES" != '1024' ]]; then
+            echo "Expected 1024 bytes from range request, got $BYTES."
+            exit 1
+          fi
+
+          echo 'Audio gateway smoke test passed.'
+
       - name: Deployment summary
         run: |
           if [[ "${{ steps.credentials.outputs.ready }}" == "true" ]]; then
             {
-              echo "## Audio gateway deployment attempted"
-              echo "If Wrangler deployed successfully, use the workers.dev URL from the deploy step as AUDIO_GATEWAY_URL for the GitHub Pages build."
+              echo "## Audio gateway deployed and tested"
+              echo "Gateway: $AUDIO_GATEWAY_URL"
+              echo "The smoke test primed one published recording into R2 and verified HTTP 206 byte-range playback."
             } >> "$GITHUB_STEP_SUMMARY"
           else
             {
