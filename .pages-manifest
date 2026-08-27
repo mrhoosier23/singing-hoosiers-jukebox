@@ -1,15 +1,11 @@
 .nojekyll
 404.html
 404/index.html
-SHAC Couple Circular Avatar Logo.png
 __next.__PAGE__.txt
 __next._full.txt
 __next._head.txt
 __next._index.txt
 __next._tree.txt
-_next/static/RDi3WAJOdaUAzlmhfjojP/_buildManifest.js
-_next/static/RDi3WAJOdaUAzlmhfjojP/_clientMiddlewareManifest.js
-_next/static/RDi3WAJOdaUAzlmhfjojP/_ssgManifest.js
 _next/static/chunks/01xlw8hd842-c.js
 _next/static/chunks/02.c7se0hrfbb.js
 _next/static/chunks/03~yq9q893hmn.js
@@ -27,6 +23,9 @@ _next/static/chunks/102lqo1sjjegp.js
 _next/static/chunks/10u3y4bw1ayzs.js
 _next/static/chunks/12c01a.8194vy.js
 _next/static/chunks/turbopack-0hvvs~r9u3ztv.js
+_next/static/v7zBnfF7vuu48MQ1-CNfn/_buildManifest.js
+_next/static/v7zBnfF7vuu48MQ1-CNfn/_clientMiddlewareManifest.js
+_next/static/v7zBnfF7vuu48MQ1-CNfn/_ssgManifest.js
 _not-found/__next._full.txt
 _not-found/__next._head.txt
 _not-found/__next._index.txt
@@ -62,6 +61,7 @@ contribute/__next.contribute.__PAGE__.txt
 contribute/__next.contribute.txt
 contribute/index.html
 contribute/index.txt
+favicon.png
 history/__next._full.txt
 history/__next._head.txt
 history/__next._index.txt
