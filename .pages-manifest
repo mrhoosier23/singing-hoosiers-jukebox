@@ -6,9 +6,6 @@ __next._full.txt
 __next._head.txt
 __next._index.txt
 __next._tree.txt
-_next/static/LX3ZUhfI0_jJFV_e8NYuY/_buildManifest.js
-_next/static/LX3ZUhfI0_jJFV_e8NYuY/_clientMiddlewareManifest.js
-_next/static/LX3ZUhfI0_jJFV_e8NYuY/_ssgManifest.js
 _next/static/chunks/01xlw8hd842-c.js
 _next/static/chunks/02.c7se0hrfbb.js
 _next/static/chunks/03~yq9q893hmn.js
@@ -17,7 +14,7 @@ _next/static/chunks/04cah9gfoaold.js
 _next/static/chunks/05j0s01191-6..js
 _next/static/chunks/0d3shmwh5_nmn.js
 _next/static/chunks/0dgq26a5_oy.a.js
-_next/static/chunks/0e28erdvnjlwb.css
+_next/static/chunks/0hgve.07-5fi_.css
 _next/static/chunks/0hxwbw1by~rf4.js
 _next/static/chunks/0k0m9-zfmf5~q.js
 _next/static/chunks/0qvl7r-7bg6xc.js
@@ -26,6 +23,9 @@ _next/static/chunks/102lqo1sjjegp.js
 _next/static/chunks/10u3y4bw1ayzs.js
 _next/static/chunks/12c01a.8194vy.js
 _next/static/chunks/turbopack-0hvvs~r9u3ztv.js
+_next/static/sYR1YvP44tEs1NoyjAOfy/_buildManifest.js
+_next/static/sYR1YvP44tEs1NoyjAOfy/_clientMiddlewareManifest.js
+_next/static/sYR1YvP44tEs1NoyjAOfy/_ssgManifest.js
 _not-found/__next._full.txt
 _not-found/__next._head.txt
 _not-found/__next._index.txt
