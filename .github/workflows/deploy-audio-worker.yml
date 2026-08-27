@@ -1,0 +1,148 @@
+name: Deploy SHAC audio gateway
+
+on:
+  workflow_dispatch:
+  push:
+    branches: ['r2-audio-migration']
+    paths:
+      - 'cloudflare/audio-worker/**'
+      - '.github/workflows/deploy-audio-worker.yml'
+
+permissions:
+  contents: read
+
+env:
+  AUDIO_GATEWAY_URL: https://singing-hoosiers-audio-gateway.anwolver.workers.dev
+  SMOKE_TEST_FILE_ID: 1bxia5Hfdz4DbogE_BWPGIGnxEaAgmS-B
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    env:
+      CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Set up Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+
+      - name: Check Cloudflare token
+        id: credentials
+        run: |
+          if [[ -z "$CLOUDFLARE_API_TOKEN" ]]; then
+            echo "ready=false" >> "$GITHUB_OUTPUT"
+            echo "CLOUDFLARE_API_TOKEN is not configured; deployment is being skipped without failing the branch."
+          else
+            echo "ready=true" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Resolve Cloudflare account ID
+        if: steps.credentials.outputs.ready == 'true'
+        run: |
+          set -euo pipefail
+          WHOAMI="$(npx --yes wrangler@4 whoami --json)"
+          ACCOUNT_ID="$(printf '%s' "$WHOAMI" | node -e '
+            let data="";
+            process.stdin.on("data", c => data += c);
+            process.stdin.on("end", () => {
+              const info = JSON.parse(data);
+              const accounts = Array.isArray(info.accounts) ? info.accounts : [];
+              if (accounts.length !== 1 || !accounts[0]?.id) {
+                console.error(`Expected exactly one Cloudflare account, found ${accounts.length}.`);
+                process.exit(2);
+              }
+              process.stdout.write(accounts[0].id);
+            });
+          ')"
+          if [[ ! "$ACCOUNT_ID" =~ ^[A-Za-z0-9_-]{32}$ ]]; then
+            echo "Wrangler returned an invalid Cloudflare account ID."
+            exit 1
+          fi
+          echo "CLOUDFLARE_ACCOUNT_ID=$ACCOUNT_ID" >> "$GITHUB_ENV"
+          echo "Resolved Cloudflare account from the API token."
+
+      - name: Ensure R2 bucket exists
+        if: steps.credentials.outputs.ready == 'true'
+        run: |
+          if npx --yes wrangler@4 r2 bucket info singing-hoosiers-audio >/dev/null 2>&1; then
+            echo "R2 bucket already exists."
+          else
+            npx --yes wrangler@4 r2 bucket create singing-hoosiers-audio
+          fi
+
+      - name: Deploy audio gateway Worker
+        if: steps.credentials.outputs.ready == 'true'
+        run: npx --yes wrangler@4 deploy --config cloudflare/audio-worker/wrangler.jsonc
+
+      - name: Smoke test audio gateway
+        if: steps.credentials.outputs.ready == 'true'
+        run: |
+          set -euo pipefail
+          URL="$AUDIO_GATEWAY_URL/audio/$SMOKE_TEST_FILE_ID"
+          echo "Priming one archive recording into R2..."
+          curl --fail --silent --show-error \
+            -H 'Origin: https://mrhoosier23.github.io' \
+            "$URL" \
+            --output /tmp/shac-audio-smoke.bin
+
+          if [[ ! -s /tmp/shac-audio-smoke.bin ]]; then
+            echo 'Gateway returned an empty recording.'
+            exit 1
+          fi
+
+          echo "Waiting for the background R2 write to finish..."
+          CACHED='false'
+          for attempt in {1..15}; do
+            STATUS="$(curl --silent --show-error --output /dev/null --write-out '%{http_code}' \
+              --head \
+              -H 'Origin: https://mrhoosier23.github.io' \
+              "$URL")"
+            if [[ "$STATUS" == '200' ]]; then
+              CACHED='true'
+              break
+            fi
+            echo "R2 write not visible yet (attempt $attempt, HTTP $STATUS); waiting 2 seconds..."
+            sleep 2
+          done
+
+          if [[ "$CACHED" != 'true' ]]; then
+            echo 'Recording did not become visible in R2 within 30 seconds.'
+            exit 1
+          fi
+
+          echo "Testing byte-range playback from the cached R2 copy..."
+          STATUS="$(curl --silent --show-error --output /tmp/shac-audio-range.bin --write-out '%{http_code}' \
+            -H 'Origin: https://mrhoosier23.github.io' \
+            -H 'Range: bytes=0-1023' \
+            "$URL")"
+
+          if [[ "$STATUS" != '206' ]]; then
+            echo "Expected HTTP 206 for cached range request, got $STATUS."
+            exit 1
+          fi
+
+          BYTES="$(wc -c < /tmp/shac-audio-range.bin)"
+          if [[ "$BYTES" != '1024' ]]; then
+            echo "Expected 1024 bytes from range request, got $BYTES."
+            exit 1
+          fi
+
+          echo 'Audio gateway smoke test passed.'
+
+      - name: Deployment summary
+        run: |
+          if [[ "${{ steps.credentials.outputs.ready }}" == "true" ]]; then
+            {
+              echo "## Audio gateway deployed and tested"
+              echo "Gateway: $AUDIO_GATEWAY_URL"
+              echo "The smoke test primed one published recording into R2 and verified cached HTTP 206 byte-range playback."
+            } >> "$GITHUB_STEP_SUMMARY"
+          else
+            {
+              echo "## Audio gateway is ready for credentials"
+              echo "Add CLOUDFLARE_API_TOKEN as a repository Actions secret, then rerun this workflow."
+            } >> "$GITHUB_STEP_SUMMARY"
+          fi
