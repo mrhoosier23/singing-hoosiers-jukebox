@@ -93,6 +93,26 @@ jobs:
             exit 1
           fi
 
+          echo "Waiting for the background R2 write to finish..."
+          CACHED='false'
+          for attempt in {1..15}; do
+            STATUS="$(curl --silent --show-error --output /dev/null --write-out '%{http_code}' \
+              --head \
+              -H 'Origin: https://mrhoosier23.github.io' \
+              "$URL")"
+            if [[ "$STATUS" == '200' ]]; then
+              CACHED='true'
+              break
+            fi
+            echo "R2 write not visible yet (attempt $attempt, HTTP $STATUS); waiting 2 seconds..."
+            sleep 2
+          done
+
+          if [[ "$CACHED" != 'true' ]]; then
+            echo 'Recording did not become visible in R2 within 30 seconds.'
+            exit 1
+          fi
+
           echo "Testing byte-range playback from the cached R2 copy..."
           STATUS="$(curl --silent --show-error --output /tmp/shac-audio-range.bin --write-out '%{http_code}' \
             -H 'Origin: https://mrhoosier23.github.io' \
@@ -118,7 +138,7 @@ jobs:
             {
               echo "## Audio gateway deployed and tested"
               echo "Gateway: $AUDIO_GATEWAY_URL"
-              echo "The smoke test primed one published recording into R2 and verified HTTP 206 byte-range playback."
+              echo "The smoke test primed one published recording into R2 and verified cached HTTP 206 byte-range playback."
             } >> "$GITHUB_STEP_SUMMARY"
           else
             {
