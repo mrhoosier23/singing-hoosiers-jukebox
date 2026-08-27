@@ -1,2 +1,2 @@
-:HL["/singing-hoosiers-jukebox/_next/static/chunks/0e28erdvnjlwb.css","style"]
-0:{"tree":{"name":"","param":null,"prefetchHints":16,"slots":{"children":{"name":"/_not-found","param":null,"prefetchHints":0,"slots":{"children":{"name":"__PAGE__","param":null,"prefetchHints":0,"slots":null}}}}},"staleTime":300,"buildId":"58jqi5UsvNfUdnG7N9Oo7"}
+:HL["/singing-hoosiers-jukebox/_next/static/chunks/0hgve.07-5fi_.css","style"]
+0:{"tree":{"name":"","param":null,"prefetchHints":16,"slots":{"children":{"name":"/_not-found","param":null,"prefetchHints":0,"slots":{"children":{"name":"__PAGE__","param":null,"prefetchHints":0,"slots":null}}}}},"staleTime":300,"buildId":"4u3ys83RyfbiEG9beTpIm"}
