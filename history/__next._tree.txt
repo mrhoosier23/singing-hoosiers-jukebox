@@ -1,3 +1,3 @@
-:HL["/singing-hoosiers-jukebox/_next/static/chunks/0exzd0o-48k18.css","style"]
+:HL["/singing-hoosiers-jukebox/_next/static/chunks/0e28erdvnjlwb.css","style"]
 :HL["https://drive.google.com/thumbnail?id=1YSOyDlKQMjEHXZRgv4PH2xp7VPcUYXJu&sz=w1800","image"]
-0:{"tree":{"name":"","param":null,"prefetchHints":16,"slots":{"children":{"name":"history","param":null,"prefetchHints":0,"slots":{"children":{"name":"__PAGE__","param":null,"prefetchHints":0,"slots":null}}}}},"staleTime":300,"buildId":"gUa3eGWlK4Md1fvcXf4b1"}
+0:{"tree":{"name":"","param":null,"prefetchHints":16,"slots":{"children":{"name":"history","param":null,"prefetchHints":0,"slots":{"children":{"name":"__PAGE__","param":null,"prefetchHints":0,"slots":null}}}}},"staleTime":300,"buildId":"58jqi5UsvNfUdnG7N9Oo7"}
