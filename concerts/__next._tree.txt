@@ -1,3 +1,3 @@
 :HL["/singing-hoosiers-jukebox/_next/static/chunks/0hgve.07-5fi_.css","style"]
 :HL["/singing-hoosiers-jukebox/_next/static/chunks/0k-a6y5i6m-bi.css","style"]
-0:{"tree":{"name":"","param":null,"prefetchHints":16,"slots":{"children":{"name":"concerts","param":null,"prefetchHints":0,"slots":{"children":{"name":"__PAGE__","param":null,"prefetchHints":0,"slots":null}}}}},"staleTime":300,"buildId":"J9HxxL4w492QuOFergUg1"}
+0:{"tree":{"name":"","param":null,"prefetchHints":16,"slots":{"children":{"name":"concerts","param":null,"prefetchHints":0,"slots":{"children":{"name":"__PAGE__","param":null,"prefetchHints":0,"slots":null}}}}},"staleTime":300,"buildId":"Ta5rnAupo_dhIEZMFkgew"}
