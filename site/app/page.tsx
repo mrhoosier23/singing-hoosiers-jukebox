@@ -48,6 +48,7 @@ export default function Home() {
       <section className="preview-grid">
         <Link className="preview-card" href="/roadshows"><p className="eyebrow">Roadshow atlas</p><h3>Every stop tells a story.</h3><p>Explore concerts, assemblies, tours, sponsors, venues, and the towns that welcomed the Singing Hoosiers.</p><span className="data-tag">Explore roadshows from 1948 to 2012</span></Link>
         <Link className="preview-card" href="/song-library"><p className="eyebrow">Song library</p><h3>Find the song you still hum.</h3><p>Search the archive by title, year, medley, or concert program, including recordings still waiting to be identified.</p><span className="data-tag">Search {playable} playable tracks</span></Link>
+        <Link className="preview-card" href="/concerts"><p className="eyebrow">Concert archive</p><h3>Watch the whole performance again.</h3><p>Return to complete Chimes of Christmas and Spring Concert performances preserved from the alumni video archive.</p><span className="data-tag">Watch 7 full concerts from 2011 to 2014</span></Link>
         <Link className="preview-card newsletter-preview" href="/newsletters"><div><p className="eyebrow">Newsletters</p><h3>Open the alumni mailbox.</h3><p>Read past issues, reunion news, profiles, tour updates, and stories from across the decades.</p><span className="data-tag">Browse the newsletter archive</span></div><Image src={siteAsset("/archive/old-sh-logo.jpg")} alt="Historic black and white Singing Hoosiers logo" width={280} height={240}/></Link>
       </section>
       <Footer />
