@@ -5,7 +5,7 @@ import styles from './concerts.module.css';
 export const metadata: Metadata = {
   title: 'Concert Archive',
   description:
-    'Watch full Singing Hoosiers Chimes of Christmas and Spring Concert performances from the alumni archive.',
+    'Watch Singing Hoosiers Chimes of Christmas and Spring Concert performances from the alumni archive.',
 };
 
 const concerts = [
@@ -13,43 +13,43 @@ const concerts = [
     year: '2014',
     series: 'Spring Concert',
     title: 'Spring Concert 2014',
-    videoId: 'QKQqqT8MZlk',
+    videoId: 'GyON9EHkQRE',
   },
   {
     year: '2013',
     series: 'Spring Concert',
     title: 'Spring Concert 2013',
-    videoId: 'jQ5mO2icLv4',
+    videoId: '_6UdRp70o0k',
   },
   {
     year: '2013',
     series: 'Chimes of Christmas',
     title: 'Chimes of Christmas 2013',
-    videoId: '_6UdRp70o0k',
-  },
-  {
-    year: '2012',
-    series: 'Spring Concert',
-    title: 'Spring Concert 2012',
-    videoId: 'tTjdcrj0hpI',
+    videoId: 'QKQqqT8MZlk',
   },
   {
     year: '2012',
     series: 'Chimes of Christmas',
     title: 'Chimes of Christmas 2012',
-    videoId: 'ROYKVjZ3mfc',
+    videoId: 'jQ5mO2icLv4',
   },
   {
-    year: '2011',
+    year: '2012',
     series: 'Spring Concert',
-    title: 'Spring Concert 2011',
-    videoId: 'GyON9EHkQRE',
+    title: 'Spring Concert 2012 · Part 1',
+    videoId: 'kfA-AqqS7qc',
+  },
+  {
+    year: '2012',
+    series: 'Spring Concert',
+    title: 'Spring Concert 2012 · Part 2',
+    videoId: 'ROYKVjZ3mfc',
   },
   {
     year: '2011',
     series: 'Chimes of Christmas',
     title: 'Chimes of Christmas 2011',
-    videoId: 'kfA-AqqS7qc',
+    videoId: 'tTjdcrj0hpI',
   },
 ];
 
@@ -65,12 +65,13 @@ export default function ConcertsPage() {
         </h1>
         <p>
           Return to full Singing Hoosiers performances from the alumni archive, including
-          Chimes of Christmas and Spring Concert programs. These videos preserve the whole
-          concert experience, not just individual tracks.
+          Chimes of Christmas and Spring Concert programs. The 2012 Spring Concert is preserved
+          across two video parts, kept together here as one concert.
         </p>
         <div className="page-stats" aria-label="Concert archive overview">
-          <span><b>7</b>full concerts</span>
-          <span><b>4</b>seasons represented</span>
+          <span><b>6</b>concert programs</span>
+          <span><b>7</b>video parts</span>
+          <span><b>4</b>years represented</span>
           <span><b>2</b>concert traditions</span>
         </div>
       </section>
@@ -82,14 +83,14 @@ export default function ConcertsPage() {
             <h2 id="concert-archive-heading">Full concerts, preserved together.</h2>
           </div>
           <p>
-            Choose a performance below. Each concert plays directly from the Singing Hoosiers
+            Choose a performance below. Each video plays directly from the Singing Hoosiers
             video archive on YouTube and can be expanded to full screen.
           </p>
         </div>
 
         <div className={styles.grid}>
           {concerts.map((concert) => (
-            <article className={styles.card} key={`${concert.series}-${concert.year}`}>
+            <article className={styles.card} key={concert.videoId}>
               <div className={styles.player}>
                 <iframe
                   src={`https://www.youtube.com/embed/${concert.videoId}`}
