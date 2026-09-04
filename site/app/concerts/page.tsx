@@ -1,4 +1,5 @@
 import type { Metadata } from 'next';
+import Link from 'next/link';
 import { Footer, Header } from '../site-chrome';
 import styles from './concerts.module.css';
 
@@ -121,7 +122,7 @@ export default function ConcertsPage() {
           memory connected to one of these performances, share it with the alumni archive so
           the record can keep growing.
         </p>
-        <a className="primary-button" href="/contribute">Share with the archive</a>
+        <Link className="primary-button" href="/contribute">Share with the archive</Link>
       </section>
       <Footer />
     </main>
